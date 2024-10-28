@@ -1,5 +1,23 @@
 #!/usr/sbin/nft -f
 
+#  Initial testing of nftables without firewalld as the front-end:
+#
+#    - Egress traffic is filtered by L3 addresses and then by L4 ports
+#    - Ingress traffic only receives a validity check
+#
+#  Next steps:
+#
+#    - Insert another chain 0 for both ingress and egress (out-block-list and in-block-list)
+#    - Add a third ingress chain filtering inbound at L4
+#    - Implicit deny (ID) vs. Implicit allow (IA)
+#
+#    Ingress:
+#      in-block-list (IA) => in-validity-check (IA) -> in-layer-four (ID)
+#    
+#    Egress:
+#      out-block-list (IA) => out-layer-three (ID) => out-layer-four (ID)
+#
+
 # Flush the rule set
 flush ruleset
 
@@ -47,7 +65,7 @@ table ip base-table {
     icmp type { echo-reply, echo-request } accept
   }
 
-  chain in-cn-validity {
+  chain in-validity-check {
     # Inbound chain blocks invalid sources and traffic types
     type filter hook input priority filter; policy accept;
 
