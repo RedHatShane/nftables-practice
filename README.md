@@ -1,5 +1,4 @@
-# nftables Practice
-### Shane S.
+## nftables Practice
 
 ### Directories
   - *Scripts* contains various .nft scripts I've created
