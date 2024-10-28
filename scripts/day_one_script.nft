@@ -7,6 +7,7 @@
 #
 #  Next steps:
 #
+#    - Clean up and use variables to simplify management 
 #    - Insert another chain 0 for both ingress and egress (out-block-list and in-block-list)
 #    - Add a third ingress chain filtering inbound at L4
 #    - Implicit deny (ID) vs. Implicit allow (IA)
@@ -25,7 +26,7 @@ table ip base-table {
   chain out-layer-three {
     # Inspect L3 addresses of outbound traffic
     # Implicit deny
-    type filter hook output priority filter + 1; policy drop;
+    type filter hook output priority filter; policy drop;
     
     # Permit traffic to local subnet on eth1
     ip daddr 10.124.0.1-10.124.15.255 accept
@@ -47,7 +48,7 @@ table ip base-table {
     # Inspect L4 ports of outbound traffic
     # Only receives traffic already accepted by "out-layer-three"
     # Implicit deny
-    type filter hook output priority filter + 2; policy drop;
+    type filter hook output priority filter + 1; policy drop;
     
     # Allow established and related traffic
     ct state established,related accept
@@ -70,10 +71,10 @@ table ip base-table {
     type filter hook input priority filter; policy accept;
 
     # Drop and increment counter if invalid connection state
-    ct state invalid counter packets 0 bytes 0 drop
+    ct state invalid counter drop
 
     # Drop and increment counter if from bogon
-    ip saddr 0.0.0.0-0.255.255.255 counter packets 0 bytes 0 drop
+    ip saddr 0.0.0.0-0.255.255.255 counter drop
 
     # Drop and increment counter if from RFC1918 address
     ip saddr 172.16.0.1-172.31.255.255 counter packets 0 bytes 0 drop
