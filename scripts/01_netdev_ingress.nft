@@ -11,8 +11,19 @@ define test_addresses = { 8.8.8.8, 9.9.9.9 }
 
 # Flush the table
 flush table netdev public_iface_filter
+flush set netdev public_iface_filter bogons
 
 table netdev public_iface_filter {
+  # We should never see these source addresses on the
+  # public internet
+  set bogons {
+    type ipv4_addr
+    flags interval
+    elements = { 0.0.0.0/8, 10.0.0.0/8,
+                 127.0.0.0/8, 169.254.0.0/16,
+                 172.16.0.0/12, 192.168.0.0/16,
+                 224.0.0.0/4, 240.0.0.0/4 }
+  }
   chain ingress {
     # Block broken packets immediately when recieved from NIC (netdev - ingress)
     type filter hook ingress device "eth0" priority -500; policy accept;
@@ -30,11 +41,14 @@ table netdev public_iface_filter {
     tcp flags syn tcp option maxseg size 1-535 counter drop
   }
 
-chain blocklist {
-  # After blocking broken packets, we have an IP blocklist for very early dropping
-  type filter hook ingress device "eth0" priority -490; policy accept;
+  chain blocklist {
+    # After blocking broken packets, we have an IP blocklist for very early dropping
+    type filter hook ingress device "eth0" priority -490; policy accept;
 
-  # Block an address for testing (pinging it, echo replies should be dropped)
-  ip saddr $test_addresses counter drop
+    # Block an address for testing (pinging it, echo replies should be dropped)
+    ip saddr $test_addresses counter drop
+
+    $ Block bogons
+    ip saddr @bogons counter packets 0 bytes 0 drop
   }
 }
