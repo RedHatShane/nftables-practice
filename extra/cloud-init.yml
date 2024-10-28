@@ -1,0 +1,10 @@
+#cloud-config
+# Simple cloud-init for spinning up test VMs
+# in public cloud. Installs and starts nftables.
+
+packages:
+  - nftables
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, nftables.service ]
+  - [ systemctl, start, --no-block, nftables.service ]
