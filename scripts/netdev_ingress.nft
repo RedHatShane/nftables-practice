@@ -1,0 +1,40 @@
+#!/usr/sbin/nft -f
+
+# Day 1 - Project 2 - 10/27/2024 
+#  Still playing with nftables. Testing ingress hook using netdev.
+#  First chain filters junk traffic, second chain is available as a
+#  very early blocklist.
+
+
+# Define a variable to test ingress filter
+define test_addresses = { 8.8.8.8, 9.9.9.9 }
+
+# Flush the table
+flush table netdev public_iface_filter
+
+table netdev public_iface_filter {
+  chain ingress {
+    # Block broken packets immediately when recieved from NIC (netdev - ingress)
+    type filter hook ingress device "eth0" priority -500; policy accept;
+
+    # Block IP fragments
+    ip frag-off & 0x1fff != 0x0 counter drop
+
+    # Block XMAS segments
+    tcp flags fin,syn,rst,psh,ack,urg / fin,syn,rst,psh,ack,urg counter drop
+
+    # Block NULL segments
+    tcp flags ! fin,syn,rst,psh,ack,urg counter drop
+
+    # Drop small MSS
+    tcp flags syn tcp option maxseg size 1-535 counter drop
+  }
+
+chain blacklist {
+  # After blocking broken packets, we have an IP blacklist
+  type filter hook ingress device "eth0" priority -490; policy accept;
+
+  # Block an address for testing (pinging it, echo replies should be dropped)
+  ip saddr $test_addresses counter drop
+  }
+}

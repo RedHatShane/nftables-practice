@@ -1,9 +1,9 @@
 #!/usr/sbin/nft -f
 
-#  Initial testing of nftables without firewalld as the front-end:
-#
-#    - Egress traffic is filtered by L3 addresses and then by L4 ports
-#    - Ingress traffic only receives a validity check
+# Day 1 - Project 1 - 10/27/2024 
+#  Initial testing of nftables without firewalld as the front-end.
+#  Outbound traffic is filtered by L3 addresses and then by L4 ports
+#  Inbound traffic only receives a validity check
 #
 #  Next steps:
 #
