@@ -1,0 +1,75 @@
+#!/usr/sbin/nft -f
+
+# Flush the rule set
+flush ruleset
+
+table ip base-table {
+  chain out-layer-three {
+    # Inspect L3 addresses of outbound traffic
+    # Implicit deny
+    type filter hook output priority filter + 1; policy drop;
+    
+    # Permit traffic to local subnet on eth1
+    ip daddr 10.124.0.1-10.124.15.255 accept
+
+    # Permit traffic to the 2 configured DNS servers
+    # grep "^name" /etc/resolv.conf
+    ip daddr 67.207.67.2-67.207.67.3 accept
+
+    # Permit traffic to my home network (anonymized to /16)
+    # curl icanhazip.com
+    ip daddr 68.96.0.0-68.96.255.255 accept
+
+    # Permit traffic to the 4 configured NTP servers
+    # grep "^server" /etc/chrony.conf
+    ip daddr 132.163.96.1-132.163.96.4 accept
+  }
+
+  chain out-layer-four {
+    # Inspect L4 ports of outbound traffic
+    # Only receives traffic already accepted by "out-layer-three"
+    # Implicit deny
+    type filter hook output priority filter + 2; policy drop;
+    
+    # Allow established and related traffic
+    ct state established,related accept
+
+    # Allow traffic out from our SSH server daemon
+    udp sport 22 accept
+
+    # Allow traffic out to DNS and NTP servers
+    udp dport { 53, 123 } accept
+
+    # Allow traffic out to web servers
+    tcp dport { 80, 443 } accept
+
+    # Allow echo requests and replies out
+    icmp type { echo-reply, echo-request } accept
+  }
+
+  chain in-cn-validity {
+    # Inbound chain blocks invalid sources and traffic types
+    type filter hook input priority filter; policy accept;
+
+    # Drop and increment counter if invalid connection state
+    ct state invalid counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if from bogon
+    ip saddr 0.0.0.0-0.255.255.255 counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if from RFC1918 address
+    ip saddr 172.16.0.1-172.31.255.255 counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if from RFC1918 address
+    ip saddr 192.168.0.1-192.168.255.255 counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if from multicast (class D) address 
+    ip saddr 224.0.0.1-239.255.255.255 counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if from experimental (class E) address
+    ip saddr 240.0.0.1-255.255.255.255 counter packets 0 bytes 0 drop
+
+    # Drop and increment counter if fragmented traffic
+    ip frag-off & 0x1fff != 0x0 counter packets 0 bytes 0 drop
+  }
+}
