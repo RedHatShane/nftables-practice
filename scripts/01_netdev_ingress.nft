@@ -30,8 +30,8 @@ table netdev public_iface_filter {
     tcp flags syn tcp option maxseg size 1-535 counter drop
   }
 
-chain blacklist {
-  # After blocking broken packets, we have an IP blacklist
+chain blocklist {
+  # After blocking broken packets, we have an IP blocklist for very early dropping
   type filter hook ingress device "eth0" priority -490; policy accept;
 
   # Block an address for testing (pinging it, echo replies should be dropped)
