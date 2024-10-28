@@ -45,7 +45,7 @@ table netdev public_iface_filter {
     # After blocking broken packets, we have an IP blocklist for very early dropping
     type filter hook ingress device "eth0" priority -490; policy accept;
 
-    # Block an address for testing (pinging it, echo replies should be dropped)
+    # Block an address for testing (when pinging it, echo replies should be dropped)
     ip saddr $test_addresses counter drop
 
     $ Block bogons
