@@ -49,6 +49,6 @@ table netdev public_iface_filter {
     ip saddr $test_addresses counter drop
 
     $ Block bogons
-    ip saddr @bogons counter packets 0 bytes 0 drop
+    ip saddr @bogons counter drop
   }
 }
