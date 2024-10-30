@@ -1,9 +1,9 @@
 #!/usr/sbin/nft -f
 
-# Day 1 - Project 3 - 10/29/2024 
+# Day 3 - Project 3 - 10/29/2024 
 #  Validating TCP scan filtering
 #  Requires binary expressions which are finicky
-#  The expressions below (in tcp-chain) have been validated with nmap scans
+#  The expressions below (in "tcp-chain") have been validated with nmap scans
 
 #   Using two servers in DigitalOcean:
 #   Public NICs in 144.126.0.0/16
