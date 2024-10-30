@@ -4,6 +4,7 @@
 
 packages:
   - nftables
+  - nmap
 runcmd:
   - [ systemctl, daemon-reload ]
   - [ systemctl, enable, nftables.service ]
