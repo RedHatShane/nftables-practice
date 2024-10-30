@@ -1,8 +1,9 @@
-
+#!/usr/sbin/nft -f
 
 # Permit SSH from client to server
 # Permit SSH from server to client
 
+flush ruleset
 
 table netdev base-table {
 	chain base-chain {
