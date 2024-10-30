@@ -1,0 +1,12 @@
+
+
+# Permit SSH from client to server
+# Permit SSH from server to client
+
+
+table netdev base-table {
+	chain base-chain {
+		type filter hook ingress priority -500; policy accept;
+		ip saddr 68.96.0.0/16 tcp dport 22 accept
+		ip saddr 144.126.0.0/16 tcp sport 22 accept
+	}
