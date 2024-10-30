@@ -5,9 +5,14 @@
 
 flush ruleset
 
-table netdev base-table {
-        chain base-chain {
-                type filter hook ingress device "eth0" priority -500; policy drop;
-                ip saddr 68.96.0.0/16 ip daddr 144.126.0.0/16 tcp dport 22 counter accept
-        }
+table ip base-table {
+  chain base-chain {
+    type filter hook input priority 0; policy drop;
+
+    # Permit established sessions on TCP 22
+    meta iifname "eth0" tcp dport 22 ct state { established, related } counter accept
+
+    # Permit client address range to access SSH servers
+    meta iifname "eth0" ip saddr 68.96.0.0/16 ip daddr 144.126.0.0/16 tcp dport 22 counter accept
+  }
 }
