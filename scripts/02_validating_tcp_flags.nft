@@ -1,0 +1,43 @@
+#!/usr/sbin/nft -f
+
+# Day 1 - Project 3 - 10/29/2024 
+#  Validating TCP scan filtering
+#  Requires binary expressions which are finicky
+#  The expressions below (in tcp-chain) have been validated with nmap scans
+
+#   Using two servers in DigitalOcean:
+#   Public NICs in 144.126.0.0/16
+#   Private NICs in 10.124.0.0/20
+# 
+#   First server for testing nftables
+#   Second table for nmap scans over private subnet
+
+flush ruleset
+
+table ip base-table {
+  chain base-chain {
+    type filter hook input priority 0; policy drop;
+
+    # Allow established SSH sessions on public interface (eth0)
+    meta iifname "eth0" tcp dport 22 ct state { established, related } counter accept
+
+    # Allow any connections from my home IP address range to server address on public NIC 
+    meta iifname "eth0" ip saddr 68.96.0.0/16 ip daddr 144.126.0.0/16 tcp dport 22 counter accept
+
+    # Allow traffic on internal subnet between servers
+    meta iifname "eth1" ip saddr 10.124.0.0/20 ip daddr 10.124.0.0/20 counter accept
+  }
+
+  chain tcp-chain {
+    type filter hook input priority 5; policy accept;
+
+    # Block NULL scans 
+    meta iifname "eth1" tcp flags & (fin|syn|rst|psh|ack|urg) < (fin) counter drop
+
+    # Block FIN scans
+    meta iifname "eth1" tcp flags & (fin | syn | rst | psh | ack | urg ) == (fin) counter drop
+
+    # Block XMAS scans
+    meta iifname "eth1" tcp flags & ( fin | syn | rst | psh | ack | urg ) == ( fin | psh | urg ) counter drop
+  }
+}
