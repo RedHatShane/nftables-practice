@@ -1,5 +1,5 @@
 default =  {
-   ssh_key_name = "Prank",
+   ssh_key_name = "primary",
    region = "sfo3",
    size = "s-1vcpu-1gb",
    image = "rockylinux-9-x64",
